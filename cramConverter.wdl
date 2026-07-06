@@ -65,29 +65,26 @@ task bamToCram {
     File inputBam
     String outputFileNamePrefix
     Int jobMemory = 12
-    Int timeout = 5
+    Int threads = 4
+    Int timeout = 8
     String referenceFasta = "$HG38_ROOT/hg38_random.fa"
     String? addParam
     String modules="samtools/1.9 hg38/p12"   
   }
-
   String resultCram = "~{outputFileNamePrefix}.cram"
   String resultCramIndex = "~{outputFileNamePrefix}.crai"
 
   command <<<
     set -euo pipefail
-
     #convert bam to cram
-    samtools view -C -T ~{referenceFasta} ~{addParam} -o ~{resultCram} ~{inputBam}
-
+    samtools view -C -T ~{referenceFasta} --threads ~{threads} ~{addParam} -o ~{resultCram} ~{inputBam}
     # index cram
-    samtools index ~{resultCram} ~{resultCramIndex}
-
-
+    samtools index -@ ~{threads} ~{resultCram} ~{resultCramIndex}
   >>>
 
   runtime {
     memory: "~{jobMemory}G"
+    cpu: "~{threads}"
     modules: "~{modules}"
     timeout: "~{timeout}"
   }
@@ -101,6 +98,7 @@ task bamToCram {
     inputBam: "Input bam file"
     outputFileNamePrefix: "Output prefix to prefix output file names with"
     jobMemory: "Memory (in GB) to allocate to the job"
+    threads: "Requested CPU threads"
     referenceFasta: "The fasta that is being used as a refrence to build the cram file"
     modules: "Modules required to process this step"
     timeout: "Hours before task timeout"
@@ -120,6 +118,7 @@ task cramToBam {
     File inputCram
     String outputFileNamePrefix
     Int jobMemory = 12
+    Int threads = 4
     Int timeout = 5
     String referenceFasta = "$HG38_ROOT/hg38_random.fa"
     String? addParam
@@ -133,16 +132,17 @@ task cramToBam {
     set -euo pipefail
 
     #convert cram to bam
-    samtools view -b -T ~{referenceFasta} ~{addParam} -o ~{resultBam} ~{inputCram}
+    samtools view -b -T ~{referenceFasta} --threads ~{threads} ~{addParam} -o ~{resultBam} ~{inputCram}
 
     # index bam
-    samtools index ~{resultBam} ~{resultBamIndex}
+    samtools index  -@ ~{threads} ~{resultBam} ~{resultBamIndex}
 
 
   >>>
 
   runtime {
     memory: "~{jobMemory}G"
+    cpu: "~{threads}"
     modules: "~{modules}"
     timeout: "~{timeout}"
   }
@@ -156,6 +156,7 @@ task cramToBam {
     inputCram: "Input Cram file"
     outputFileNamePrefix: "Output prefix to prefix output file names with"
     jobMemory: "Memory (in GB) to allocate to the job"
+    threads: "Requested CPU threads"
     referenceFasta: "The fasta that is being used as a refrence to build the bam file"
     modules: "Modules required to process this step"
     timeout: "Hours before task timeout"
