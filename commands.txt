@@ -1,34 +1,23 @@
 ## Commands
 This section lists command(s) run by cramConverter workflow
 
-* Running cram
-
-This workflow converts cram to bam or bam to cram
-
-### BAM to CRAM
+* Running cramConverter
 
 ```
     set -euo pipefail
-
     #convert bam to cram
-    samtools view -C -T ~{referenceFasta} ~{addParam} -o ~{resultCram} ~{inputBam}
-
+    samtools view -C -T ~{referenceFasta} --threads ~{threads} ~{addParam} -o ~{resultCram} ~{inputBam}
     # index cram
-    samtools index ~{resultCram} ~{resultCramIndex}
-
-
+    samtools index -@ ~{threads} ~{resultCram} ~{resultCramIndex}
 ```
-
-## CRAM to BAM
-
 ```
     set -euo pipefail
 
     #convert cram to bam
-    samtools view -b -T ~{referenceFasta} ~{addParam} -o ~{resultBam} ~{inputCram}
+    samtools view -b -T ~{referenceFasta} --threads ~{threads} ~{addParam} -o ~{resultBam} ~{inputCram}
 
     # index bam
-    samtools index ~{resultBam} ~{resultBamIndex}
+    samtools index  -@ ~{threads} ~{resultBam} ~{resultBamIndex}
 
 
 ```
